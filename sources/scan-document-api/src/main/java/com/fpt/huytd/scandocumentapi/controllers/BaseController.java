@@ -54,8 +54,10 @@ public class BaseController {
         document.open();
         do {
             MorenaImage image = new MorenaImage(source);
-            document.add(ScannerImageService.getMorenaImage(image));
-            document.newPage();
+            if(image != null) {
+                document.add(ScannerImageService.getMorenaImage(image));
+                document.newPage();
+            }
         }
         while (source.hasMoreImages());
         document.close();

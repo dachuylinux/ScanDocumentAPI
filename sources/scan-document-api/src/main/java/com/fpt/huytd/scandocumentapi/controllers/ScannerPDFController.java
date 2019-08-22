@@ -39,24 +39,29 @@ public class ScannerPDFController extends BaseController {
                 super.settingMode(source, colorMode);
                 super.settingPages(source, duplex);
                 super.saveFilePDF(source, pathFile);
+
+                //return file
+                String fileNameReturn = fileName.concat(".pdf");
+                HttpHeaders header = new HttpHeaders();
+                header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileNameReturn);
+                header.add("Cache-Control", "no-cache, no-store, must-revalidate");
+                header.add("Pragma", "no-cache");
+                header.add("Expires", "0");
+                File file = new File(pathFile);
+                if (file.exists() && file.length() > 0) {
+                    Path path = Paths.get(file.getAbsolutePath());
+                    ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
+                    return ResponseEntity.ok()
+                            .headers(header)
+                            .contentLength(file.length())
+                            .contentType(MediaType.parseMediaType("application/octet-stream"))
+                            .body(resource);
+                } else {
+                    throw new NullPointerException("file not found!");
+                }
             }
             TwainManager.close();
-            //return file
-            String fileNameReturn = fileName.concat(".pdf");
-            HttpHeaders header = new HttpHeaders();
-            header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileNameReturn);
-            header.add("Cache-Control", "no-cache, no-store, must-revalidate");
-            header.add("Pragma", "no-cache");
-            header.add("Expires", "0");
-            File file = new File(pathFile);
-
-            Path path = Paths.get(file.getAbsolutePath());
-            ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
-            return ResponseEntity.ok()
-                    .headers(header)
-                    .contentLength(file.length())
-                    .contentType(MediaType.parseMediaType("application/octet-stream"))
-                    .body(resource);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
