@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+	var port=8080;
+	var listPath;
+	$(document).ready(function(){
+		var urlRequest_Page = "http://127.0.0.1:"+port+"/scan/base64/page/image/findByPageNumber";
+		var urlRequest_Page_remove = "http://127.0.0.1:"+port+"/scan/base64/page/image/removeByPageNumber";
+		$("#prev").click(function(){
+			var curentPage = parseInt($('#pageNumber').val());
+			if(curentPage > 1){
+				if(listPath.length > 0){
+					var prevPage = parseInt(curentPage) - 1;
+					prevOrnextSendAjax(prevPage);
+				}
+			}
+		});
+		
+		$("#next").click(function(){
+			var curentPage = parseInt($('#pageNumber').val());
+			var total = parseInt($('#total').val());
+			if(curentPage < total){
+				if(listPath.length > 0){
+					var nextPage = parseInt(curentPage) + 1;
+					prevOrnextSendAjax(nextPage);
+				}
+			}
+		});
+		
+		$("#removePage").click(function(){
+			var index = parseInt($('#pageNumber').val()) -1;
+			var total = parseInt($('#total').val());
+			if(index > 0 && index <= total){
+				if(listPath.length > 0){
+					//remove element
+					listPath = listPath.filter(item => index != item.index);
+					// set index again					
+					for(var i=0;i<listPath.length;i++){
+						listPath[i].index = i;
+					}
+					if(index >= 1){
+						$("#prev").click();
+					}
+				}
+			} else if(index == 0 && index <= total && total > 1){
+				if(listPath.length > 0){
+				console.log('1');
+					//remove element
+					listPath = listPath.filter(item => index != item.index);
+					// set index again					
+					for(var i=0;i<listPath.length;i++){
+						listPath[i].index = i;
+					}
+					prevOrnextSendAjax(1);
+				}
+			}
+	
+		});
+		
+		$("#print").click(function(){
+			var colorMode = $("input[name='colorMode']:checked").val();
+			var duplex = $("input[name='duplex']:checked").length > 0;
+			var req = new XMLHttpRequest();
+			req.open("POST", "http://127.0.0.1:"+port+"/scan/stream/page/images/exportPDF", true);
+			req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+			req.responseType = "blob";
+			req.onreadystatechange = function () {
+				if (req.readyState === 4 && req.status === 200) {
+					if (typeof window.navigator.msSaveBlob === 'function') {
+					  window.navigator.msSaveBlob(req.response, "PdfName-" + new Date().getTime() + ".pdf");
+					} else {
+					  var blob = req.response;
+					  var link = document.createElement('a');
+					  link.href = window.URL.createObjectURL(blob);
+					  link.download = "PdfName-" + new Date().getTime() + ".pdf";
+					  document.body.appendChild(link);
+					  link.click();
+					}
+				}
+			};
+			req.send(JSON.stringify({"colorMode": colorMode, "duplex": duplex,"paths": listPath}));
+		});
+		
+		function prevOrnextSendAjax(pageNum){
+			$.ajax({
+				type: "POST",
+				async: false,
+				url: urlRequest_Page,
+				data: JSON.stringify({"pageNum": pageNum,"paths": listPath}),
+				processData: false,
+				contentType: "application/json; charset=utf-8",
+				dataType   : "json",
+				success: function (data) {
+					$('#total').val(data.total);
+					$('#pageNumber').val(pageNum);
+					$('#imgResult').attr("src","data:image/jpeg;base64,"+data.data);
+					listPath = data.listPath;
+				},
+				error: function (e) {
+					alert('Có lỗi xảy ra khi thực hiện quét văn bản [ERROR CODE 101]!');
+				}
+			});
+		}
+	});	
+	function scanAndGetFirstImg(){
+		var urlRequest = "http://127.0.0.1:"+port+"/scan/base64/page/images";
+		var colorMode = $("input[name='colorMode']:checked").val();
+		var duplex = $("input[name='duplex']:checked").length > 0;		
+		$.ajax({
+			type: "POST",
+			async: false,
+			url: urlRequest,
+			data: JSON.stringify({"colorMode": colorMode,"duplex": true}),
+			processData: false,
+			contentType: "application/json; charset=utf-8",
+			dataType   : "json",
+			success: function (data) {
+				$('#total').val(data.total);
+				$('#pageNumber').val(data.pageNumber);
+				$('#imgResult').attr("src","data:image/jpeg;base64,"+data.data);
+				listPath = data.listPath;
+			},
+			error: function (e) {
+				alert('Có lỗi xảy ra khi thực hiện quét văn bản [ERROR CODE 101]!');
+			}
+		});
+	}
+</script>
+</head>
+<body>
+	<input type="radio" name="colorMode" value="RBG" checked> Color<br>
+	<input type="radio" name="colorMode" value="BW"> Black/White<br>
+	<input type="radio" name="colorMode" value="GRAY"> GRAY<br>
+	<input type="checkbox" name="duplex" checked> Duplex<br>
+	<button id="btn-scan" onclick="scanAndGetFirstImg()">Click to scan</button>
+	<hr/>
+	<div id="div1">
+		<img id="imgResult" style="width:300px;height:400px" />
+	</div>
+
+	<button id="prev"><<</button>
+	|<input type="text" id="pageNumber" value="*" style="width:30px;"/>/<input type="text" id="total" value="?" style="width:30px;" disabled/>|
+	<button id="next">>></button>
+	<button id="removePage">Remove this page</button>
+	<br/>
+	<button id="print">print PDF</button>
+</body>
+</html>
