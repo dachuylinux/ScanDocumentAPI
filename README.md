@@ -2,7 +2,7 @@
 ### đối với máy có cài các driver máy in 32-bit:
 B1. Thực hiện cài đặt java-8 32-bit.<br/>
 B2. Copy file ./files/32bit/TWAINDSM.dll đưa vào thư mục C:\Windows\SysWOW64<br/>
-B3. Mở file ./files/run_program.batch và chỉnh sửa giá trị java_path thành đường dẫn thư mục cài đặt <b><i>java-8 32-bit</i></b<br/>
+B3. Mở file ./files/run_program.batch và chỉnh sửa giá trị java_path thành đường dẫn thư mục cài đặt <b><i>java-8 32-bit</i></b><br/>
 B4. Run file ./files/run_program.batch <br/>
 ### đối với máy có cài các driver máy in 64-bit:<br/>
 B1. Thực hiện cài đặt java-8 64-bit.<br/>
