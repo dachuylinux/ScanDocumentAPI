@@ -13,4 +13,4 @@ B4. Run file ./files/run_program.batch <br/>
 ### Thông tin về API xem các hàm javascript được viết tương ứng với các action
 200 >> file sẽ được lưu ở thư mục C:\Windows\Temp\ScanAPI\ <br/>
 503 >> lỗi. <br/>
-### chú ý, chương trình sẽ thực thi run embedded tomcat server với port 8080, để thay đổi port này, mở file ./files/run_program.batch và sửa giá trị -Dserver.port=<port_mong_muốn>
+### chú ý, chương trình sẽ thực thi run embedded tomcat server với port 8080, để thay đổi port này, mở file ./files/run_program.batch và sửa giá trị -Dserver.port=<port_mong_muốn> , nhớ chỉnh sửa lại giá trị PORT trong file example.html
