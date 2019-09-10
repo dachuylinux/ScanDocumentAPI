@@ -1,7 +1,25 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+	<input type="radio" name="colorMode" value="RBG" checked> Color<br>
+	<input type="radio" name="colorMode" value="BW"> Black/White<br>
+	<input type="radio" name="colorMode" value="GRAY"> GRAY<br>
+	<input type="checkbox" name="duplex" checked> Duplex<br>
+	<button id="btn-scan">Click to scan</button>
+	<hr/>
+	<div id="div1">
+		<img id="imgResult" style="width:300px;height:400px" />
+	</div>
+
+	<button id="prev">&lt;&lt;</button>
+	|<input type="text" id="pageNumber" value="*" style="width:30px;"/>/<input type="text" id="total" value="?" style="width:30px;" disabled/>|
+	<button id="next">&gt;&gt;</button>
+	<button id="removePage">Remove this page</button>
+	<br/>
+	<button id="print">print PDF</button>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>	
 <script>
 	var port=8080;
 	var listPath;
@@ -35,7 +53,12 @@
 			if(index > 0 && index <= total){
 				if(listPath.length > 0){
 					//remove element
-					listPath = listPath.filter(item => index != item.index);
+					for( var i = 0; i < listPath.length; i++){ 
+					   if ( index == listPath[i].index) {
+						 listPath.splice(i, 1); 
+					   }
+					}
+					//listPath = listPath.filter(item => index != item.index);
 					// set index again					
 					for(var i=0;i<listPath.length;i++){
 						listPath[i].index = i;
@@ -46,9 +69,13 @@
 				}
 			} else if(index == 0 && index <= total && total > 1){
 				if(listPath.length > 0){
-				console.log('1');
 					//remove element
-					listPath = listPath.filter(item => index != item.index);
+					for( var i = 0; i < listPath.length; i++){ 
+					   if ( index == listPath[i].index) {
+						 listPath.splice(i, 1); 
+					   }
+					}
+					//listPath = listPath.filter(item => index != item.index);
 					// set index again					
 					for(var i=0;i<listPath.length;i++){
 						listPath[i].index = i;
@@ -103,48 +130,30 @@
 				}
 			});
 		}
-	});	
-	function scanAndGetFirstImg(){
-		var urlRequest = "http://127.0.0.1:"+port+"/scan/base64/page/images";
-		var colorMode = $("input[name='colorMode']:checked").val();
-		var duplex = $("input[name='duplex']:checked").length > 0;		
-		$.ajax({
-			type: "POST",
-			async: false,
-			url: urlRequest,
-			data: JSON.stringify({"colorMode": colorMode,"duplex": true}),
-			processData: false,
-			contentType: "application/json; charset=utf-8",
-			dataType   : "json",
-			success: function (data) {
-				$('#total').val(data.total);
-				$('#pageNumber').val(data.pageNumber);
-				$('#imgResult').attr("src","data:image/jpeg;base64,"+data.data);
-				listPath = data.listPath;
-			},
-			error: function (e) {
-				alert('Có lỗi xảy ra khi thực hiện quét văn bản [ERROR CODE 101]!');
-			}
+		$("#btn-scan").click(function(){
+			var urlRequest = "http://127.0.0.1:"+port+"/scan/base64/page/images";
+			var colorMode = $("input[name='colorMode']:checked").val();
+			var duplex = $("input[name='duplex']:checked").length > 0;		
+			$.ajax({
+				type: "POST",
+				async: false,
+				url: urlRequest,
+				data: JSON.stringify({"colorMode": colorMode,"duplex": duplex}),
+				processData: false,
+				contentType: "application/json; charset=utf-8",
+				dataType   : "json",
+				success: function (data) {
+					$('#total').val(data.total);
+					$('#pageNumber').val(data.pageNumber);
+					$('#imgResult').attr("src","data:image/jpeg;base64,"+data.data);
+					listPath = data.listPath;
+				},
+				error: function (e) {
+					alert('Có lỗi xảy ra khi thực hiện quét văn bản [ERROR CODE 101]!');
+				}
+			});
 		});
-	}
+	});	
 </script>
-</head>
-<body>
-	<input type="radio" name="colorMode" value="RBG" checked> Color<br>
-	<input type="radio" name="colorMode" value="BW"> Black/White<br>
-	<input type="radio" name="colorMode" value="GRAY"> GRAY<br>
-	<input type="checkbox" name="duplex" checked> Duplex<br>
-	<button id="btn-scan" onclick="scanAndGetFirstImg()">Click to scan</button>
-	<hr/>
-	<div id="div1">
-		<img id="imgResult" style="width:300px;height:400px" />
-	</div>
-
-	<button id="prev"><<</button>
-	|<input type="text" id="pageNumber" value="*" style="width:30px;"/>/<input type="text" id="total" value="?" style="width:30px;" disabled/>|
-	<button id="next">>></button>
-	<button id="removePage">Remove this page</button>
-	<br/>
-	<button id="print">print PDF</button>
 </body>
 </html>
